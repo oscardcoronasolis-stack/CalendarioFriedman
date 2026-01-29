@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    :root {
+      --bg-principal: #F4F7F9;
+      --texto-titulo: #34495E;
+      --texto-normal: #7F8C8D;
+      --cian: #3498DB;
+    }
+
+    body { 
+      background: var(--bg-principal); 
+      font-family: 'Segoe UI', sans-serif; 
+      margin: 10px 20px; /* Reducido margen lateral de 40 a 20 */
+      overflow-x: hidden;
+    }
+
+    .super-header {
+      display: flex;
+      flex-direction: column; 
+      align-items: flex-start;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    /* CONTENEDOR OPTIMIZADO: Gap reducido de 30px a 15px */
+    .header-container {
+      display: flex; 
+      align-items: center;
+      background: transparent; 
+      width: 100%; 
+      gap: 15px; 
+      border: none !important;
+      box-shadow: none !important;
+      flex-wrap: nowrap; /* Evita que los elementos salten de línea */
+    }
+
+    .filtros-group { display: flex; gap: 8px; align-items: center; }
+
+    /* Selectores más compactos */
+    select { 
+      background: white; 
+      color: var(--texto-titulo); 
+      border: 1px solid #DCDDE1; 
+      padding: 4px 8px; 
+      border-radius: 6px; 
+      outline: none; 
+      cursor: pointer;
+      font-size: 12px;
+      min-width: 100px;
+    }
+
+    .btn-refresh {
+      background: var(--cian); 
+      color: white; 
+      border: none;
+      padding: 6px 12px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: 600;
+      display: flex; 
+      align-items: center; 
+      gap: 5px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    #dashboard-container { 
+      display: flex; 
+      flex-direction: row; 
+      flex-wrap: wrap;
+      gap: 15px; 
+      justify-content: flex-start;
+    }
+
+    .rotating { animation: spin 1s infinite linear; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="super-header">
+    <?!= include('Logo'); ?>
+    
+    <div class="header-container">
+      <div class="filtros-group">
+        <?!= include('Filtros'); ?>
+      </div>
+      
+      <button id="btnActualizar" class="btn-refresh" onclick="recargarDatos()">
+        <span id="refresh-icon">🔄</span> Actualizar
+      </button>
+
+      <?!= include('ResumenG'); ?>
+      <?!= include('ResumenF'); ?>
+      <?!= include('GraficoMeta'); ?>
+      <?!= include('ResumenC'); ?>
+      <?!= include('ResumenCorte'); ?>
+      <?!= include('StatusHoy'); ?>
+    </div>
+  </div>
+
+  <div id="dashboard-container"></div>
+
+  <?!= include('Bloque1Cuadro1'); ?>
+
+  <script>
+    let datosGlobales = [];
+    window.onload = function() { recargarDatos(); };
+
+    function recargarDatos() {
+      const btn = document.getElementById('btnActualizar');
+      const icon = document.getElementById('refresh-icon');
+      if(icon) icon.classList.add('rotating');
+      if(btn) btn.disabled = true;
+
+      google.script.run.withSuccessHandler(function(datos) {
+        datosGlobales = datos;
+        if (datosGlobales.length > 0) datosGlobales.shift();
+        if (typeof inicializarFiltros === "function") inicializarFiltros(datosGlobales);
+        crearContenedoresManual();
+        filtrar();
+        if(icon) icon.classList.remove('rotating');
+        if(btn) btn.disabled = false;
+      }).obtenerDatos();
+    }
+
+    function crearContenedoresManual() {
+      const container = document.getElementById('dashboard-container');
+      container.innerHTML = ""; 
+      for (let i = 1; i <= 35; i++) {
+        const div = document.createElement('div');
+        div.innerHTML = inyectarEstructura(i);
+        container.appendChild(div);
+      }
+    }
+
+    function filtrar() {
+      const t = document.getElementById('filtroTienda').value;
+      const m = document.getElementById('filtroMes').value;
+      if (!t || !m) return;
+      
+      const filasCoincidentes = datosGlobales.filter(r => 
+        String(r[1]).trim() === String(t).trim() && 
+        String(r[11]).trim() === String(m).trim()
+      );
+      
+      let totalVentaG = 0;
+      let totalMetaF = 0;
+      let totalCorteS = 0;
+
+      filasCoincidentes.forEach(function(r) {
+        totalVentaG += parseFloat(String(r[6] || "0").replace(/[$,]/g, "")) || 0;
+        totalMetaF += parseFloat(String(r[5] || "0").replace(/[$,]/g, "")) || 0;
+        if (String(r[19]).trim().toUpperCase() === "S") {
+            totalCorteS += parseFloat(String(r[2] || "0").replace(/[$,]/g, "")) || 0;
+        }
+      });
+
+      if (typeof actualizarResumenIndependiente === "function") actualizarResumenIndependiente(filasCoincidentes);
+      if (typeof actualizarResumenF === "function") actualizarResumenF(filasCoincidentes);
+      if (typeof actualizarGraficoMeta === "function") actualizarGraficoMeta(totalVentaG, totalMetaF);
+      if (typeof actualizarResumenC === "function") actualizarResumenC(filasCoincidentes);
+      if (typeof actualizarResumenCorte === "function") actualizarResumenCorte(filasCoincidentes);
+      if (typeof actualizarStatusHoy === "function") actualizarStatusHoy(totalVentaG, totalCorteS);
+
+      for (let i = 1; i <= 35; i++) {
+        const filaUnik = filasCoincidentes.find(r => String(r[16]).trim() === String(i));
+        if (typeof actualizarCuadroDinamico === "function") {
+          actualizarCuadroDinamico(filaUnik, i);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
