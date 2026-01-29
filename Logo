@@ -1,0 +1,20 @@
+<style>
+  .logo-container {
+    display: flex;
+    justify-content: flex-start; /* Forzar izquierda */
+    align-items: center;
+    padding: 10px 0;
+    width: 100%;
+  }
+
+  .logo-img {
+    max-height: 55px; /* Tamaño un poco más compacto y elegante */
+    width: auto;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.05));
+    margin-left: 0; 
+  }
+</style>
+
+<div class="logo-container">
+  <img src="https://lh3.googleusercontent.com/d/1WZQM_pC7kbPC_svzgzJiEDU8Z7YMuGCB" alt="IVONNE" class="logo-img">
+</div>
