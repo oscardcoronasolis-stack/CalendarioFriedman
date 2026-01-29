@@ -1,0 +1,92 @@
+<style>
+  .grafico-meta-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 20px;
+    width: 90px;
+    position: relative;
+    /* Subimos la gráfica aún más con un margen negativo mayor */
+    margin-top: -15px; 
+  }
+
+  .grafico-titulo-peq {
+    font-size: 11px;
+    font-weight: 800;
+    color: #555555;
+    margin-bottom: 2px;
+    text-align: center;
+    /* Eliminado el uppercase para que coincida con tus otros títulos */
+  }
+
+  .doughnut-chart {
+    position: relative;
+    width: 68px; /* Un poco más pequeño para que suba mejor */
+    height: 68px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .circular-chart {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .bg-circle {
+    fill: none;
+    stroke: #E0E4E8;
+    stroke-width: 3.8;
+  }
+
+  .progress-circle {
+    fill: none;
+    stroke: #3498DB;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.8s ease-in-out;
+  }
+
+  .percentage-text {
+    position: absolute;
+    font-size: 15px;
+    font-weight: 900;
+    color: #1A1A1A;
+    font-family: 'Segoe UI', sans-serif;
+  }
+</style>
+
+<div class="grafico-meta-container" id="seccionGraficoMeta" style="display:none;">
+  <div class="grafico-titulo-peq">Meta</div>
+  <div class="doughnut-chart">
+    <svg viewBox="0 0 36 36" class="circular-chart">
+      <path class="bg-circle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+      <path class="progress-circle" id="circleProg" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+    </svg>
+    <div class="percentage-text" id="valPctTxt">0%</div>
+  </div>
+</div>
+
+<script>
+  function actualizarGraficoMeta(venta, meta) {
+    const contenedor = document.getElementById('seccionGraficoMeta');
+    const circulo = document.getElementById('circleProg');
+    const texto = document.getElementById('valPctTxt');
+
+    if (!meta || meta <= 0) {
+      contenedor.style.display = 'none';
+      return;
+    }
+    contenedor.style.display = 'flex';
+
+    const porcentaje = Math.round((venta / meta) * 100);
+    const dashValue = Math.min(porcentaje, 100);
+
+    circulo.setAttribute('stroke-dasharray', `${dashValue}, 100`);
+    texto.innerText = porcentaje + '%';
+    
+    // Cambia a verde si llega al 100% o más
+    circulo.style.stroke = (porcentaje >= 100) ? '#27AE60' : '#3498DB';
+  }
+</script>
