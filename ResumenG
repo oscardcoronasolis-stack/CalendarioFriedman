@@ -1,0 +1,58 @@
+<style>
+  .resumen-g-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .resumen-g-titulo {
+    font-size: 11px;
+    font-weight: 800;
+    color: #555555;
+    /* Eliminado: text-transform: uppercase */
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .resumen-g-valor {
+    font-size: 26px;
+    font-weight: 900;
+    color: #1A1A1A;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .resumen-g-label {
+    font-size: 10px;
+    color: #95A5A6;
+    font-weight: 700;
+    /* Eliminado: text-transform: uppercase */
+  }
+</style>
+
+<div class="resumen-g-container" id="seccionResumenG" style="display:none;">
+  <div class="resumen-g-titulo">Acumulado mensual</div>
+  <div class="resumen-g-valor" id="montoTotalG">$0</div>
+  <div class="resumen-g-label">Venta total</div>
+</div>
+
+<script>
+  function actualizarResumenIndependiente(filas) {
+    const contenedor = document.getElementById('seccionResumenG');
+    if (!filas || filas.length === 0) {
+      contenedor.style.display = 'none';
+      return;
+    }
+    contenedor.style.display = 'flex';
+
+    let sumaG = 0;
+    filas.forEach(function(r) {
+      const valor = parseFloat(String(r[6] || "0").replace(/[$,]/g, "")) || 0;
+      sumaG += valor;
+    });
+
+    document.getElementById('montoTotalG').innerText = '$' + Math.floor(sumaG).toLocaleString('es-MX');
+   
+  }
+</script>
+
