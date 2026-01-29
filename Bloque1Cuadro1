@@ -1,0 +1,165 @@
+<style>
+  .kpi-card {
+    width: 210px; 
+    background: var(--tarjeta); 
+    border: 1px solid white;
+    border-radius: 20px; 
+    padding: 18px; 
+    box-sizing: border-box;
+    flex-shrink: 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* --- ILUMINACIÓN INTERNA DIFUMINADA (RESTAURADA) --- */
+  
+  /* 1 - VERDE (S=1) */
+  .iluminacion-1 { 
+    border-color: rgba(39, 174, 96, 0.3) !important; 
+    box-shadow: inset 0 0 35px rgba(39, 174, 96, 0.15), 0 8px 20px rgba(0,0,0,0.05) !important;
+    background: linear-gradient(180deg, rgba(39, 174, 96, 0.03) 0%, #FFFFFF 100%);
+  }
+
+  /* 2 - AMARILLO (S=2) */
+  .iluminacion-2 { 
+    border-color: rgba(241, 196, 15, 0.3) !important; 
+    box-shadow: inset 0 0 35px rgba(241, 196, 15, 0.15), 0 8px 20px rgba(0,0,0,0.05) !important;
+    background: linear-gradient(180deg, rgba(241, 196, 15, 0.03) 0%, #FFFFFF 100%);
+  }
+
+  /* 3 - ROJO (S=3) */
+  .iluminacion-3 { 
+    border-color: rgba(231, 76, 60, 0.3) !important; 
+    box-shadow: inset 0 0 35px rgba(231, 76, 60, 0.15), 0 8px 20px rgba(0,0,0,0.05) !important;
+    background: linear-gradient(180deg, rgba(231, 76, 60, 0.03) 0%, #FFFFFF 100%);
+  }
+
+  /* --- TRIÁNGULOS Y COLORES --- */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .triangulo {
+    display: inline-block;
+    animation: float 2s infinite ease-in-out;
+    margin-right: 2px;
+  }
+
+  .up { color: #27AE60 !important; font-weight: 800; }
+  .down { color: #E74C3C !important; font-weight: 800; }
+
+  /* --- TEXTOS --- */
+  .top-labels-container { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; }
+  .label-superior { font-size: 11px; color: var(--texto-labels); font-weight: 700; }
+  
+  .venta-principal { 
+    font-size: 32px; font-weight: 800; color: var(--texto-titulo); text-align: center; margin: 5px 0 15px 0; 
+    background: linear-gradient(to bottom, #2C3E50, #465E75); -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+  }
+  
+  .sub-stats-container { background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 10px; display: flex; justify-content: space-between; border: 1px solid rgba(255,255,255,0.9); }
+  .stat-group { display: flex; flex-direction: column; width: 48%; align-items: center; }
+  .stat-label { font-size: 9px; color: var(--texto-labels); text-transform: uppercase; font-weight: 800; }
+  .stat-value { font-size: 14px; font-weight: 700; color: var(--texto-titulo); }
+  .extra-val { font-size: 11px; font-weight: 600; margin-top: 3px; }
+  .percentage { font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 2px; margin-top: 2px; }
+
+  .card-empty { border: 1px dashed var(--borde); background: transparent; box-shadow: none; opacity: 0.3; }
+  @keyframes star-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .glow-star { display: inline-block; animation: star-rotate 4s infinite linear; }
+</style>
+
+<script>
+  function inyectarEstructura(id) {
+    return `
+      <div class="kpi-card card-empty" id="card-${id}">
+        <div id="content-${id}" style="display:none; width:100%;">
+          <div class="top-labels-container">
+            <div class="label-superior" id="txtDiaG-${id}"></div>
+            <div id="txtIconoS-${id}" style="font-size:16px;"></div>
+            <div class="label-superior" id="txtColR-${id}"></div>
+          </div>
+          <div class="venta-principal" id="txtVenta-${id}">$0</div>
+          <div class="sub-stats-container">
+            <div class="stat-group">
+              <span class="stat-label">AA</span>
+              <span class="stat-value" id="txtAA-${id}">0</span>
+              <div id="pctAA-${id}"></div>
+              <div id="extraH-${id}" class="extra-val"></div>
+            </div>
+            <div class="stat-group">
+              <span class="stat-label">META</span>
+              <span class="stat-value" id="txtMeta-${id}">0</span>
+              <div id="pctMeta-${id}"></div>
+              <div id="extraI-${id}" class="extra-val"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function actualizarCuadroDinamico(fila, id) {
+    const card = document.getElementById(`card-${id}`);
+    const content = document.getElementById(`content-${id}`);
+    if (!fila) { card.classList.add('card-empty'); if(content) content.style.display = 'none'; return; }
+    card.classList.remove('card-empty');
+    if(content) content.style.display = 'block';
+
+    // LIMPIAR Y APLICAR ILUMINACIÓN
+    card.classList.remove('iluminacion-1', 'iluminacion-2', 'iluminacion-3');
+    const s = String(fila[18] || "").trim();
+    const ico = document.getElementById(`txtIconoS-${id}`);
+    ico.innerHTML = "";
+
+    if (s === "1") { card.classList.add('iluminacion-1'); ico.innerHTML = '<span class="glow-star">⭐</span>'; }
+    else if (s === "2") { card.classList.add('iluminacion-2'); ico.innerHTML = "⚫"; }
+    else if (s === "3") { card.classList.add('iluminacion-3'); ico.innerHTML = "🔴"; }
+
+    document.getElementById(`txtDiaG-${id}`).innerText = fila[15] || "";
+    document.getElementById(`txtColR-${id}`).innerText = fila[17] || "";
+
+    const vV = parseFloat(String(fila[6]).replace(/[^0-9.-]+/g,"")) || 0;
+    document.getElementById(`txtVenta-${id}`).innerText = '$' + Math.floor(vV).toLocaleString('es-MX');
+
+    const vAA = parseFloat(String(fila[2]).replace(/[^0-9.-]+/g,"")) || 0;
+    const vMT = parseFloat(String(fila[5]).replace(/[^0-9.-]+/g,"")) || 0;
+    document.getElementById(`txtAA-${id}`).innerText = Math.floor(vAA).toLocaleString('es-MX');
+    document.getElementById(`txtMeta-${id}`).innerText = Math.floor(vMT).toLocaleString('es-MX');
+
+    renderKPIFinal(fila[9], `pctAA-${id}`);
+    renderKPIFinal(fila[10], `pctMeta-${id}`);
+    renderExtraFinal(fila[7], `extraH-${id}`);
+    renderExtraFinal(fila[8], `extraI-${id}`);
+  }
+
+  function renderKPIFinal(val, eid) {
+    let n = parseFloat(String(val).replace(/[^0-9.-]+/g,"")) || 0;
+    let valorFinal = (Math.abs(n) < 2) ? n * 100 : n;
+    const pos = valorFinal >= 0;
+    const el = document.getElementById(eid);
+    if(el) {
+      el.innerHTML = `
+        <div class="percentage ${pos ? 'up' : 'down'}">
+          <span class="triangulo">${pos ? '▲' : '▼'}</span>
+          ${Math.abs(valorFinal).toFixed(0)}%
+        </div>
+      `;
+    }
+  }
+
+  function renderExtraFinal(val, eid) {
+    const n = Math.floor(parseFloat(String(val).replace(/[^0-9.-]+/g,"")) || 0);
+    const el = document.getElementById(eid);
+    if(el) {
+      el.innerText = (n > 0 ? '+' : '') + n.toLocaleString('es-MX');
+      el.className = `extra-val ${n >= 0 ? 'up' : 'down'}`;
+    }
+  }
+</script>
