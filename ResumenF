@@ -1,0 +1,56 @@
+<style>
+  .resumen-f-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 30px; /* Espacio para separarlo de Resumen G */
+  }
+
+  .resumen-f-titulo {
+    font-size: 11px;
+    font-weight: 800;
+    color: #555555;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .resumen-f-valor {
+    font-size: 26px;
+    font-weight: 900;
+    color: #1A1A1A;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .resumen-f-label {
+    font-size: 10px;
+    color: #95A5A6;
+    font-weight: 700;
+  }
+</style>
+
+<div class="resumen-f-container" id="seccionResumenF" style="display:none;">
+  <div class="resumen-f-titulo">Meta mensual</div>
+  <div class="resumen-f-valor" id="montoTotalF">$0</div>
+  <div class="resumen-f-label">Presupuesto total</div>
+</div>
+
+<script>
+  function actualizarResumenF(filas) {
+    const contenedor = document.getElementById('seccionResumenF');
+    if (!filas || filas.length === 0) {
+      contenedor.style.display = 'none';
+      return;
+    }
+    contenedor.style.display = 'flex';
+
+    let sumaF = 0;
+    filas.forEach(function(r) {
+      // Sumamos columna F (índice 5)
+      const valor = parseFloat(String(r[5] || "0").replace(/[$,]/g, "")) || 0;
+      sumaF += valor;
+    });
+
+    document.getElementById('montoTotalF').innerText = '$' + Math.floor(sumaF).toLocaleString('es-MX');
+  }
+</script>
