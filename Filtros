@@ -1,0 +1,46 @@
+<label style="font-size: 11px; font-weight: 800; color: #444444;">Tienda:</label>
+<select id="filtroTienda" onchange="filtrar()"></select>
+
+<label style="font-size: 11px; font-weight: 800; color: #444444; margin-left: 15px;">Mes:</label>
+<select id="filtroMes" onchange="filtrar()"></select>
+
+<script>
+  /**
+   * Esta función llena los selectores con los datos únicos del Sheets.
+   * Se ejecuta automáticamente al cargar o actualizar los datos.
+   */
+  function inicializarFiltros(datos) {
+    const selT = document.getElementById('filtroTienda');
+    const selM = document.getElementById('filtroMes');
+    
+    // Mapa para asegurar el orden cronológico de los meses
+    const ordenMeses = {
+      "ENERO":1, "FEBRERO":2, "MARZO":3, "ABRIL":4, "MAYO":5, "JUNIO":6,
+      "JULIO":7, "AGOSTO":8, "SEPTIEMBRE":9, "OCTUBRE":10, "NOVIEMBRE":11, "DICIEMBRE":12
+    };
+
+    // 1. Obtener Tiendas únicas (Columna B / Índice 1) y ordenar alfabéticamente
+    const tiendas = [...new Set(datos.map(r => r[1]))].sort();
+    
+    // 2. Obtener Meses únicos (Columna L / Índice 11) y ordenar cronológicamente
+    const meses = [...new Set(datos.map(r => r[11]))].sort((a,b) => {
+      const mesA = String(a).toUpperCase().trim();
+      const mesB = String(b).toUpperCase().trim();
+      return (ordenMeses[mesA] || 99) - (ordenMeses[mesB] || 99);
+    });
+
+    // 3. Limpiar y llenar el selector de Tiendas
+    selT.innerHTML = "";
+    tiendas.forEach(t => { 
+      if(t) selT.add(new Option(t, t)); 
+    });
+    
+    // 4. Limpiar y llenar el selector de Meses
+    selM.innerHTML = "";
+    meses.forEach(m => { 
+      if(m) selM.add(new Option(m, m)); 
+    });
+
+    console.log("Filtros inicializados correctamente.");
+  }
+</script>
