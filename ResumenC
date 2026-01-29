@@ -1,0 +1,56 @@
+<style>
+  .resumen-c-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 30px; /* Espacio para separarlo del gráfico */
+  }
+
+  .resumen-c-titulo {
+    font-size: 11px;
+    font-weight: 800;
+    color: #555555;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .resumen-c-valor {
+    font-size: 26px;
+    font-weight: 900;
+    color: #1A1A1A;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .resumen-c-label {
+    font-size: 10px;
+    color: #95A5A6;
+    font-weight: 700;
+  }
+</style>
+
+<div class="resumen-c-container" id="seccionResumenC" style="display:none;">
+  <div class="resumen-c-titulo">Venta año anterior</div>
+  <div class="resumen-c-valor" id="montoTotalC">$0</div>
+  <div class="resumen-c-label">Total histórico</div>
+</div>
+
+<script>
+  function actualizarResumenC(filas) {
+    const contenedor = document.getElementById('seccionResumenC');
+    if (!filas || filas.length === 0) {
+      contenedor.style.display = 'none';
+      return;
+    }
+    contenedor.style.display = 'flex';
+
+    let sumaC = 0;
+    filas.forEach(function(r) {
+      // Sumamos columna C (índice 2)
+      const valor = parseFloat(String(r[2] || "0").replace(/[$,]/g, "")) || 0;
+      sumaC += valor;
+    });
+
+    document.getElementById('montoTotalC').innerText = '$' + Math.floor(sumaC).toLocaleString('es-MX');
+  }
+</script>
